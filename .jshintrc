@@ -1,0 +1,16 @@
+{
+  "globals": {},
+  "browser": true,
+  "devel": true,
+  "curly": true,
+  "eqeqeq": true,
+  "forin": true,
+  "latedef": true,
+  "newcap": true,
+  "noempty": true,
+  "nonew": true,
+  "quotmark": "double",
+  "trailing": true,
+  "undef": true,
+  "unused": true
+}
