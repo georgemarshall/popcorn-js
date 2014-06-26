@@ -1,4 +1,5 @@
 (function( Popcorn, window, document ) {
+  "use strict";
 
   var
 
@@ -47,7 +48,11 @@
   }
 
   function addYouTubeCallback( callback ) {
-    ytCallbacks.push( callback );
+    if ( !ytReady ) {
+      ytCallbacks.push( callback );
+      return;
+    }
+    callback();
   }
 
   function HTMLYouTubeVideoElement( id ) {
