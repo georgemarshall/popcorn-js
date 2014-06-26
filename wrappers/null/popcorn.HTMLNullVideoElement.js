@@ -431,10 +431,16 @@
           setMuted( self._util.isAttributeSet( aValue ) );
         }
       },
-      
+
+      availablePlaybackRates: {
+        get: function() {
+          return Number.POSITIVE_INFINITY;
+        }
+      },
+
       playbackRate: {
         get: function() {
-          return player.playbackRate;   
+          return player.playbackRate;
         },
         set: function( aValue ) {
           player.playbackRate = aValue;

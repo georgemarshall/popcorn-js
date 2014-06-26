@@ -3,6 +3,8 @@
  * that are created within a DIV, and forward their properties and methods
  * to a wrapped object.
  */
+ /* global Popcorn */
+ "use strict";
 (function( Popcorn, document ) {
 
   function canPlaySrc( src ) {
@@ -15,6 +17,15 @@
       media = document.createElement( mediaType );
 
     parent.appendChild( media );
+
+    Object.defineProperties( media, {
+      availablePlaybackRates: {
+        get: function() {
+          return Number.POSITIVE_INFINITY;
+        },
+        configurable: true
+      }
+    });
 
     // Add the helper function _canPlaySrc so this works like other wrappers.
     media._canPlaySrc = canPlaySrc;

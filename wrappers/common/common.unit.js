@@ -762,6 +762,32 @@ asyncTest( "T35 - duration ready in loadedmetadata", 1, function() {
   video.src = testData.videoSrc;
 });
 
+test( "T36 - availablePlaybackRates and defaultPlaybackRate", 2, function() {
+  var video = testData.createMedia( "#video" );
+
+  video.src = testData.videoSrc;
+
+  ok( video.availablePlaybackRates === Number.POSITIVE_INFINITY ||
+       Array.isArray( video.availablePlaybackRates ),
+       "availablePlaybackRates is POSITIVE_INFINITY or Array" );
+
+  equal( typeof video.defaultPlaybackRate, "number", "Video has defaultPlaybackRate" );
+});
+
+asyncTest( "T37 - ratechange event", 1, function() {
+  var video = testData.createMedia( "#video" );
+
+  video.addEventListener( "ratechange", function onPlaybackRateChange() {
+    video.removeEventListener( "ratechange", onPlaybackRateChange, false );
+
+    equal( video.playbackRate, video.defaultPlaybackRate, "ratechange event triggered");
+    start();
+  }, false);
+
+  video.src = testData.videoSrc;
+  video.playbackRate = video.defaultPlaybackRate;
+});
+
 // Add any player-specific sync tests now
 if( testData.playerSpecificSyncTests ) {
   testData.playerSpecificSyncTests();

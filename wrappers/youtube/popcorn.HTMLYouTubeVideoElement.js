@@ -1,3 +1,4 @@
+/* global MediaError, Popcorn, YT */
 (function( Popcorn, window, document ) {
   "use strict";
 
@@ -76,6 +77,8 @@
         loop: false,
         poster: EMPTY_STRING,
         volume: 1,
+        availablePlaybackRates: [],
+        playbackRate: 1,
         muted: false,
         currentTime: 0,
         duration: NaN,
@@ -156,7 +159,7 @@
         case 5:
           err.message = "The requested content cannot be played in an HTML5 player or another error related to the HTML5 player has occurred.";
           err.code = MediaError.MEDIA_ERR_DECODE;
-
+          break;
         // requested video not found
         case 100:
           err.message = "Video not found.";
@@ -199,6 +202,8 @@
         player.unMute();
       }
 
+      impl.availablePlaybackRates = player.getAvailablePlaybackRates();
+
       impl.readyState = self.HAVE_METADATA;
       self.dispatchEvent( "loadedmetadata" );
       currentTimeInterval = setInterval( monitorCurrentTime,
@@ -212,7 +217,7 @@
       mediaReady = true;
       bufferedInterval = setInterval( monitorBuffered, 50 );
 
-      while( mediaReadyCallbacks.length ) {
+      while ( mediaReadyCallbacks.length ) {
         mediaReadyCallbacks[ 0 ]();
         mediaReadyCallbacks.shift();
       }
@@ -266,6 +271,10 @@
 
     addYouTubeEvent( "buffering", onBuffering );
     addYouTubeEvent( "ended", onEnded );
+
+    function onPlaybackRateChange( event ) {
+      impl.playbackRate = event.data;
+    }
 
     function onPlayerStateChange( event ) {
 
@@ -429,9 +438,10 @@
           videoId: aSrc,
           playerVars: playerVars,
           events: {
-            'onReady': onPlayerReady,
-            'onError': onPlayerError,
-            'onStateChange': onPlayerStateChange
+            "onReady": onPlayerReady,
+            "onError": onPlayerError,
+            "onPlaybackRateChange": onPlaybackRateChange,
+            "onStateChange": onPlayerStateChange
           }
         });
 
@@ -687,11 +697,11 @@
           return impl.volume;
         },
         set: function( aValue ) {
-          if( aValue < 0 || aValue > 1 ) {
+          if ( aValue < 0 || aValue > 1 ) {
             throw "Volume value must be between 0.0 and 1.0";
           }
           impl.volume = aValue;
-          if( !mediaReady ) {
+          if ( !mediaReady ) {
             addMediaReadyCallback( function() {
               self.volume = aValue;
             });
@@ -708,6 +718,28 @@
         },
         set: function( aValue ) {
           setMuted( self._util.isAttributeSet( aValue ) );
+        }
+      },
+
+      availablePlaybackRates: {
+        get: function() {
+          return impl.availablePlaybackRates;
+        }
+      },
+
+      playbackRate: {
+        get: function() {
+          return impl.playbackRate;
+        },
+        set: function( aValue ) {
+          if ( !mediaReady ) {
+            addMediaReadyCallback( function() {
+              self.playbackRate = aValue;
+            });
+            return;
+          }
+          player.setPlaybackRate( aValue );
+          self.dispatchEvent( "ratechange" );
         }
       },
 

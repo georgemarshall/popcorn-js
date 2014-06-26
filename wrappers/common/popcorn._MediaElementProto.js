@@ -5,6 +5,8 @@
  *   - parentNode: the element owning the media div/iframe
  *   - _eventNamespace: the unique namespace for all events
  */
+/* global Popcorn */
+"use strict";
 (function( Popcorn, document ) {
 
   /*********************************************************************************
@@ -142,6 +144,7 @@
     protoElement.HAVE_CURRENT_DATA = 2;
     protoElement.HAVE_FUTURE_DATA = 3;
     protoElement.HAVE_ENOUGH_DATA = 4;
+
     Object.defineProperties( protoElement, {
 
       currentSrc: {
@@ -160,7 +163,7 @@
         },
         configurable: true
       },
-      
+
       // We really can't do much more than "auto" with most of these.
       preload: {
         get: function() {
@@ -218,6 +221,13 @@
       defaultMuted: {
         get: function() {
           return false;
+        },
+        configurable: true
+      },
+
+      availablePlaybackRates: {
+        get: function() {
+          return Number.POSITIVE_INFINITY;
         },
         configurable: true
       },
