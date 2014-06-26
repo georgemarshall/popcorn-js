@@ -1,4 +1,4 @@
-/* global MediaError, Popcorn, YT */
+/* global YT */
 (function( Popcorn, window, document ) {
   "use strict";
 
@@ -8,7 +8,7 @@
   EMPTY_STRING = "",
 
   // Example: http://www.youtube.com/watch?v=12345678901
-  regexYouTube = /^.*(?:\/|v=)(.{11})/,
+  regexYouTube = /youtu(?:be\.com|\.be).*(?:\/|v=)(.{11})/i,
 
   ABS = Math.abs,
 
@@ -21,7 +21,7 @@
     var callback;
     if ( YT.loaded ) {
       ytReady = true;
-      while( ytCallbacks.length ) {
+      while ( ytCallbacks.length ) {
         callback = ytCallbacks.shift();
         callback();
       }
@@ -33,7 +33,7 @@
   function isYouTubeReady() {
     var script;
     // If we area already waiting, do nothing.
-    if( !ytLoading ) {
+    if ( !ytLoading ) {
       // If script is already there, check if it is loaded.
       if ( window.YT ) {
         onYouTubeIframeAPIReady();
@@ -59,7 +59,7 @@
   function HTMLYouTubeVideoElement( id ) {
 
     // YouTube iframe API requires postMessage
-    if( !window.postMessage ) {
+    if ( !window.postMessage ) {
       throw "ERROR: HTMLYouTubeVideoElement requires window.postMessage";
     }
 
@@ -143,11 +143,11 @@
       onMuted();
     }
 
-    function onPlayerError(event) {
+    function onPlayerError( event ) {
       // There's no perfect mapping to HTML5 errors from YouTube errors.
       var err = { name: "MediaError" };
 
-      switch( event.data ) {
+      switch ( event.data ) {
 
         // invalid parameter
         case 2:
@@ -187,7 +187,7 @@
       addYouTubeEvent( "play", onPlay );
       addYouTubeEvent( "pause", onPause );
       // Set initial paused state
-      if( impl.autoplay || !impl.paused ) {
+      if ( impl.autoplay || !impl.paused ) {
         removeYouTubeEvent( "play", onReady );
         impl.paused = false;
         addMediaReadyCallback(function() {
@@ -198,7 +198,7 @@
       }
 
       // Ensure video will now be unmuted when playing due to the mute on initial load.
-      if( !impl.muted ) {
+      if ( !impl.muted ) {
         player.unMute();
       }
 
@@ -234,7 +234,7 @@
         return;
       }
 
-      if( impl.autoplay || !impl.paused ) {
+      if ( impl.autoplay || !impl.paused ) {
         addYouTubeEvent( "play", onReady );
         player.playVideo();
       } else {
@@ -278,7 +278,7 @@
 
     function onPlayerStateChange( event ) {
 
-      switch( event.data ) {
+      switch ( event.data ) {
 
         // ended
         case YT.PlayerState.ENDED:
@@ -319,7 +319,7 @@
     }
 
     function destroyPlayer() {
-      if( !( playerReady && player ) ) {
+      if ( !( playerReady && player ) ) {
         return;
       }
 
@@ -341,7 +341,7 @@
     }
 
     function changeSrc( aSrc ) {
-      if( !self._canPlaySrc( aSrc ) ) {
+      if ( !self._canPlaySrc( aSrc ) ) {
         impl.error = {
           name: "MediaError",
           message: "Media Source Not Supported",
@@ -354,13 +354,13 @@
       impl.src = aSrc;
 
       // Make sure YouTube is ready, and if not, register a callback
-      if( !isYouTubeReady() ) {
+      if ( !isYouTubeReady() ) {
         addYouTubeCallback( function() { changeSrc( aSrc ); } );
         return;
       }
 
-      if( playerReady ) {
-        if( mediaReady ) {
+      if ( playerReady ) {
+        if ( mediaReady ) {
           destroyPlayer();
         } else {
           addMediaReadyCallback( function() {
@@ -478,7 +478,7 @@
         return;
       }
       impl.currentTime = aTime;
-      if( !mediaReady ) {
+      if ( !mediaReady ) {
         addMediaReadyCallback( function() {
 
           onSeeking();
@@ -514,14 +514,14 @@
     }
 
     function onPlay() {
-      if( impl.ended ) {
+      if ( impl.ended ) {
         changeCurrentTime( 0 );
         impl.ended = false;
       }
       timeUpdateInterval = setInterval( onTimeUpdate,
                                         self._util.TIMEUPDATE_MS );
       impl.paused = false;
-      if( playerPaused ) {
+      if ( playerPaused ) {
         playerPaused = false;
 
         // Only 1 play when video.loop=true
@@ -539,7 +539,7 @@
 
     self.play = function() {
       impl.paused = false;
-      if( !mediaReady ) {
+      if ( !mediaReady ) {
         addMediaReadyCallback( function() {
           self.play();
         });
@@ -559,7 +559,7 @@
 
     self.pause = function() {
       impl.paused = true;
-      if( !mediaReady ) {
+      if ( !mediaReady ) {
         addMediaReadyCallback( function() {
           self.pause();
         });
@@ -573,7 +573,7 @@
     };
 
     function onEnded() {
-      if( impl.loop ) {
+      if ( impl.loop ) {
         changeCurrentTime( 0 );
         self.play();
       } else {
@@ -589,7 +589,7 @@
 
     function setMuted( aValue ) {
       impl.muted = aValue;
-      if( !mediaReady ) {
+      if ( !mediaReady ) {
         addMediaReadyCallback( function() {
           setMuted( impl.muted );
         });
@@ -611,7 +611,7 @@
           return impl.src;
         },
         set: function( aSrc ) {
-          if( aSrc && aSrc !== impl.src ) {
+          if ( aSrc && aSrc !== impl.src ) {
             changeSrc( aSrc );
           }
         }
@@ -793,9 +793,7 @@
 
   // Helper for identifying URLs we know how to play.
   Popcorn.HTMLYouTubeVideoElement._canPlaySrc = function( url ) {
-    return (/(?:http:\/\/www\.|http:\/\/|www\.|\.|^)(youtu).*(?:\/|v=)(.{11})/).test( url ) ?
-      "probably" :
-      EMPTY_STRING;
+    return regexYouTube.test( url ) ? "probably" : EMPTY_STRING;
   };
 
   // We'll attempt to support a mime type of video/x-youtube

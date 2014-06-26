@@ -1,5 +1,8 @@
 {
-  "globals": {},
+  "globals": {
+    "MediaError": true,
+    "Popcorn": true
+  },
   "browser": true,
   "devel": true,
   "curly": true,
