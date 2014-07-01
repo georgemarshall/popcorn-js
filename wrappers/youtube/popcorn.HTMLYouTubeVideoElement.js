@@ -40,6 +40,7 @@
       } else {
         script = document.createElement( "script" );
         script.addEventListener( "load", onYouTubeIframeAPIReady, false);
+        script.async = true;
         script.src = "https://www.youtube.com/iframe_api";
         document.head.appendChild( script );
       }
@@ -439,9 +440,9 @@
           playerVars: playerVars,
           events: {
             "onReady": onPlayerReady,
-            "onError": onPlayerError,
+            "onStateChange": onPlayerStateChange,
             "onPlaybackRateChange": onPlaybackRateChange,
-            "onStateChange": onPlayerStateChange
+            "onError": onPlayerError
           }
         });
 

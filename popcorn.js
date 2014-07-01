@@ -1,5 +1,5 @@
 (function(global, document) {
-
+  "use strict";
   // Popcorn.js does not support archaic browsers
   if ( !document.addEventListener ) {
     global.Popcorn = {
@@ -245,7 +245,7 @@
         duration = self.media.duration;
 
         //  Check for no duration info (NaN)
-        videoDurationPlus = duration != duration ? Number.MAX_VALUE : duration + 1;
+        videoDurationPlus = duration !== duration ? Number.MAX_VALUE : duration + 1;
 
         Popcorn.addTrackEvent( self, {
           start: videoDurationPlus,
@@ -1944,7 +1944,7 @@
           ];
 
           // Matches null and undefined, allows: false, 0, "" and truthy
-          if ( options.target != null ) {
+          if ( options.target !== null ) {
             props.push( "target: " + options.target );
           }
 
@@ -2673,7 +2673,7 @@
       if ( typeof console !== "undefined" && console.warn ) {
         console.warn(
           "Deprecated method '" + api + "', " +
-          (recommend == null ? "do not use." : "use '" + recommend + "' instead." )
+          (recommend === null ? "do not use." : "use '" + recommend + "' instead." )
         );
 
         // Restore api after first warning
