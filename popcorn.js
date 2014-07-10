@@ -1,4 +1,4 @@
-(function(global, document) {
+(function( global, document ) {
   "use strict";
   // Popcorn.js does not support archaic browsers
   if ( !document.addEventListener ) {
@@ -44,7 +44,7 @@
 
   //  Non-public `requestAnimFrame`
   //  http://paulirish.com/2011/requestanimationframe-for-smart-animating/
-  requestAnimFrame = (function(){
+  requestAnimFrame = (function() {
     return global.requestAnimationFrame ||
       global.webkitRequestAnimationFrame ||
       global.mozRequestAnimationFrame ||
@@ -245,7 +245,7 @@
         duration = self.media.duration;
 
         //  Check for no duration info (NaN)
-        videoDurationPlus = duration !== duration ? Number.MAX_VALUE : duration + 1;
+        videoDurationPlus = isNaN( duration ) ? Number.MAX_VALUE : duration + 1;
 
         Popcorn.addTrackEvent( self, {
           start: videoDurationPlus,
@@ -319,18 +319,23 @@
 
                   runningPlugin = runningPlugins[ i ];
                   rpNatives = runningPlugin._natives;
-                  rpNatives && rpNatives.frame &&
+                  if ( rpNatives && rpNatives.frame ) {
                     rpNatives.frame.call( self, {}, runningPlugin, self.currentTime() );
+                  }
                 }
               }
             });
 
             self.emit( "timeupdate" );
 
-            !self.isDestroyed && requestAnimFrame( self.data.timeUpdate );
+            if ( !self.isDestroyed ) {
+              requestAnimFrame( self.data.timeUpdate );
+            }
           };
 
-          !self.isDestroyed && requestAnimFrame( self.data.timeUpdate );
+          if ( !self.isDestroyed ) {
+            requestAnimFrame( self.data.timeUpdate );
+          }
 
         } else {
 
@@ -434,8 +439,9 @@
   };
 
 
-  // A Few reusable utils, memoized onto Popcorn
+  // A Few reusable utils, memorized onto Popcorn
   Popcorn.extend( Popcorn, {
+
     noConflict: function( deep ) {
 
       if ( deep ) {
@@ -444,13 +450,16 @@
 
       return Popcorn;
     },
+
     error: function( msg ) {
       throw new Error( msg );
     },
+
     guid: function( prefix ) {
       Popcorn.guid.counter++;
       return  ( prefix ? prefix : "" ) + ( +new Date() + Popcorn.guid.counter );
     },
+
     sizeOf: function( obj ) {
       var size = 0;
 
@@ -460,6 +469,7 @@
 
       return size;
     },
+
     isArray: Array.isArray || function( array ) {
       return toString.call( array ) === "[object Array]";
     },
@@ -474,7 +484,6 @@
 
       var clientRect = elem.getBoundingClientRect(),
           bounds = {},
-          doc = elem.ownerDocument,
           docElem = document.documentElement,
           body = document.body,
           clientTop, clientLeft, scrollTop, scrollLeft, top, left;
@@ -495,7 +504,7 @@
         bounds[ p ] = Math.round( clientRect[ p ] );
       }
 
-      return Popcorn.extend({}, bounds, { top: top, left: left });
+      return Popcorn.extend( {}, bounds, { top: top, left: left } );
     },
 
     disable: function( instance, plugin ) {
@@ -515,7 +524,7 @@
           event._natives.end.call( instance, null, event  );
 
           instance.emit( "trackend",
-            Popcorn.extend({}, event, {
+            Popcorn.extend( {}, event, {
               plugin: event.type,
               type: "trackend"
             })
@@ -525,6 +534,7 @@
 
       return instance;
     },
+
     enable: function( instance, plugin ) {
 
       if ( !instance.data.disabled[ plugin ] ) {
@@ -542,7 +552,7 @@
           event._natives.start.call( instance, null, event  );
 
           instance.emit( "trackstart",
-            Popcorn.extend({}, event, {
+            Popcorn.extend( {}, event, {
               plugin: event.type,
               type: "trackstart",
               track: event
@@ -553,6 +563,7 @@
 
       return instance;
     },
+
     destroy: function( instance ) {
       var events = instance.data.events,
           trackEvents = instance.data.trackEvents,
@@ -577,21 +588,24 @@
       trackEvents.byEnd.length = 0;
 
       if ( !instance.isDestroyed ) {
-        instance.data.timeUpdate && instance.media.removeEventListener( "timeupdate", instance.data.timeUpdate, false );
+        if ( instance.data.timeUpdate ) {
+          instance.media.removeEventListener( "timeupdate", instance.data.timeUpdate, false );
+        }
         instance.isDestroyed = true;
       }
 
       Popcorn.instances.splice( Popcorn.instances.indexOf( instance ), 1 );
     }
+
   });
 
-  //  Memoized GUID Counter
+  //  Memorized GUID Counter
   Popcorn.guid.counter = 1;
 
   //  Factory to implement getters, setters and controllers
   //  as Popcorn instance methods. The IIFE will create and return
   //  an object with defined methods
-  Popcorn.extend(Popcorn.p, (function() {
+  Popcorn.extend( Popcorn.p, (function() {
 
       var methods = "load play pause currentTime playbackRate volume duration preload playbackRate " +
                     "autoplay loop controls muted buffered readyState seeking paused played seekable ended",
@@ -610,7 +624,7 @@
             // If arg is not null or undefined and called by one of the
             // allowed shorthandable methods, then set the currentTime
             // Supports time as seconds or SMPTE
-            if ( arg != null && /play|pause/.test( name ) ) {
+            if ( arg !== undefined && /play|pause/.test( name ) ) {
               this.media.currentTime = Popcorn.util.toSeconds( arg );
             }
 
@@ -619,7 +633,7 @@
             return this;
           }
 
-          if ( arg != null ) {
+          if ( arg !== undefined ) {
             // Capture the current value of the attribute property
             previous = this.media[ name ];
 
@@ -653,7 +667,7 @@
     };
   });
 
-  Popcorn.extend(Popcorn.p, {
+  Popcorn.extend( Popcorn.p, {
 
     //  Rounded currentTime
     roundTime: function() {
@@ -789,7 +803,7 @@
         // Store references to user added trackevents in ref table
         Popcorn.addTrackEvent.ref( this, options );
 
-        this.emit( eventType, Popcorn.extend({}, options, {
+        this.emit( eventType, Popcorn.extend( {}, options, {
           id: id,
           type: eventType,
           previousValue: {
@@ -813,7 +827,7 @@
     // Mute the calling media, optionally toggle
     mute: function( toggle ) {
 
-      var event = toggle == null || toggle === true ? "muted" : "unmuted";
+      var event = toggle === undefined || toggle === true ? "muted" : "unmuted";
 
       // If `toggle` is explicitly `false`,
       // unmute the media and restore the volume level
@@ -838,7 +852,7 @@
     // Convenience method, unmute the calling media
     unmute: function( toggle ) {
 
-      return this.mute( toggle == null ? false : !toggle );
+      return this.mute( toggle === undefined ? false : !toggle );
     },
 
     // Get the client bounding box of an instance element
@@ -900,7 +914,7 @@
 
     var apis = internal.events.apiTypes,
     eventsList = events.Natives.split( /\s+/g ),
-    idx = 0, len = eventsList.length, prop;
+    idx = 0, len = eventsList.length;
 
     for( ; idx < len; idx++ ) {
       data.hash[ eventsList[idx] ] = true;
@@ -925,6 +939,7 @@
     isNative: function( type ) {
       return !!internal.events.hash[ type ];
     },
+
     getInterface: function( type ) {
 
       if ( !Popcorn.events.isNative( type ) ) {
@@ -946,10 +961,13 @@
       }
       return api;
     },
+
     //  Compile all native events to single array
     all: Popcorn.Events.Natives.split( /\s+/g ),
+
     //  Defines all Event handling static functions
     fn: {
+
       trigger: function( type, data ) {
         var eventInterface, evt, clonedEvents,
             events = this.data.events[ type ];
@@ -978,11 +996,11 @@
 
         return this;
       },
+
       listen: function( type, fn ) {
         var self = this,
             hasEvents = true,
             eventHook = Popcorn.events.hooks[ type ],
-            origType = type,
             clonedEvents,
             tmp;
 
@@ -1048,6 +1066,7 @@
         }
         return this;
       },
+
       unlisten: function( type, fn ) {
         var ind,
             events = this.data.events[ type ];
@@ -1083,9 +1102,13 @@
         return this;
       }
     },
+
     hooks: {
+
       canplayall: {
+
         bind: "canplaythrough",
+
         add: function( event, callback ) {
 
           var state = false;
@@ -1095,7 +1118,7 @@
             // always call canplayall asynchronously
             setTimeout(function() {
               callback.call( this, event );
-            }.bind(this), 0 );
+            }.bind( this ), 0 );
 
             state = true;
           }
@@ -1104,6 +1127,7 @@
             fired: state
           };
         },
+
         // declare special handling instructions
         handler: function canplayall( event, callback ) {
 
@@ -1301,8 +1325,7 @@
         byStart = [],
         byEnd = [],
         animating = [],
-        history = [],
-        comparable = {};
+        history = [];
 
     state = state || {};
 
@@ -1463,7 +1486,7 @@
       Popcorn.addTrackEvent.ref( obj, track );
     }
 
-    obj.emit( "trackadded", Popcorn.extend({}, track,
+    obj.emit( "trackadded", Popcorn.extend( {}, track,
       track._natives ? { plugin: track._natives.type } : {}, {
         type: "trackadded",
         track: track
@@ -1517,10 +1540,10 @@
   Popcorn.getTrackEvents = function( obj ) {
 
     var trackevents = [],
-      refs = obj.data.trackEvents.byStart,
-      length = refs.length,
-      idx = 0,
-      ref;
+        refs = obj.data.trackEvents.byStart,
+        length = refs.length,
+        idx = 0,
+        ref;
 
     for ( ; idx < length; idx++ ) {
       ref = refs[ idx ];
@@ -1564,8 +1587,7 @@
         trackstart = "trackstart",
         trackend = "trackend",
 
-        byEnd, byStart, byAnimate, natives, type, runningPlugins;
-
+      byEnd, byStart, natives, type, runningPlugins;
     //  Playbar advancing
     if ( previousTime <= currentTime ) {
 
@@ -1728,9 +1750,13 @@
     tracks.startIndex = start;
     tracks.previousUpdateTime = currentTime;
 
-    //enforce index integrity if trackRemoved
-    tracks.byStart.length < byStartLen && tracks.startIndex--;
-    tracks.byEnd.length < byEndLen && tracks.endIndex--;
+    // enforce index integrity if trackRemoved
+    if ( tracks.byStart.length < byStartLen ) {
+      tracks.startIndex--;
+    }
+    if ( tracks.byEnd.length < byEndLen ) {
+      tracks.endIndex--;
+    }
 
   };
 
@@ -1790,8 +1816,7 @@
     var isfn = typeof definition === "function",
         blacklist = [ "start", "end", "type", "manifest" ],
         methods = [ "_setup", "_teardown", "start", "end", "frame" ],
-        plugin = {},
-        setup;
+        plugin = {};
 
     // combines calls of two function calls into one
     var combineFn = function( first, second ) {
@@ -1845,8 +1870,7 @@
       //  Storing the plugin natives
       var natives = options._natives = {},
           compose = "",
-          originalOpts, manifestOpts;
-
+          manifestOpts;
       Popcorn.extend( natives, setup );
 
       options._natives.type = options._natives.plugin = name;
@@ -2016,8 +2040,7 @@
     //  Extend Popcorn.p with new named definition
     //  Assign new named definition
     Popcorn.p[ name ] = plugin[ name ] = function( id, options ) {
-      var length = arguments.length,
-          trackEvent, defaults, mergedSetupOpts, previousOpts, newOpts;
+      var trackEvent, defaults, mergedSetupOpts, previousOpts, newOpts;
 
       // Shift arguments based on use case
       //
@@ -2264,7 +2287,9 @@
 
       if ( byStart[ idx ] && byStart[ idx ]._natives && byStart[ idx ]._natives.type === name ) {
 
-        byStart[ idx ]._natives._teardown && byStart[ idx ]._natives._teardown.call( obj, byStart[ idx ] );
+        if ( byStart[ idx ]._natives._teardown ) {
+          byStart[ idx ]._natives._teardown.call( obj, byStart[ idx ] );
+        }
 
         byStart.splice( idx, 1 );
 
@@ -2277,7 +2302,7 @@
       }
 
       // clean any remaining references in the end index
-      // we do this seperate from the above check because they might not be in the same order
+      // we do this separate from the above check because they might not be in the same order
       if ( byEnd[ idx ] && byEnd[ idx ]._natives && byEnd[ idx ]._natives.type === name ) {
 
         byEnd.splice( idx, 1 );
@@ -2317,7 +2342,9 @@
 
   //  Basic DOM utilities and helpers API. See #1037
   Popcorn.dom = {
+
     debug: false,
+
     //  Popcorn.dom.find( selector, context )
     //
     //  Returns the first element that matches the specified selector
@@ -2492,11 +2519,10 @@
       isFired = false,
       params = [],
       rjsonp = /(=)\?(?=&|$)|\?\?/,
-      replaceInUrl, prefix, paramStr, callback, callparam;
-
+      prefix, callback, callparam;
     if ( !isScript ) {
 
-      // is there a calback already in the url
+      // is there a callback already in the url
       callparam = url.match( /(callback=[^&]*)/ );
 
       if ( callparam !== null && callparam.length ) {
@@ -2541,7 +2567,9 @@
       //  Define the JSONP success callback globally
       window[ callback ] = function( data ) {
         // Fire success callbacks
-        success && success( data );
+        if ( success ) {
+          success( data );
+        }
         isFired = true;
       };
     }
@@ -2551,7 +2579,9 @@
       //  Handling remote script loading callbacks
       if ( isScript ) {
         //  getScript
-        success && success();
+        if ( success ) {
+          success();
+        }
       }
 
       //  Executing for JSONP requests
@@ -2565,7 +2595,9 @@
 
     script.addEventListener( "error",  function( e ) {
       //  Handling remote script loading callbacks
-      success && success( { error: e } );
+      if ( success ) {
+        success( { error: e } );
+      }
 
       //  Executing for JSONP requests
       if ( !isScript ) {
@@ -2687,4 +2719,4 @@
   //  Exposes Popcorn to global context
   global.Popcorn = Popcorn;
 
-})(window, window.document);
+})( window, window.document );

@@ -7,7 +7,6 @@
   "devel": true,
   "curly": true,
   "eqeqeq": true,
-  "forin": true,
   "latedef": true,
   "newcap": true,
   "noempty": true,

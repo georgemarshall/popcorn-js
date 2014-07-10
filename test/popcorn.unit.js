@@ -3703,7 +3703,7 @@ asyncTest( "Plugin Closure", function() {
         equal( endCount++, options.endCount++, options.nick + " has correct end counts" );
         plus();
 
-        // running tracks again to make sure data increments uniquly
+        // running tracks again to make sure data increments uniquely
         popped.currentTime( 5 ).play();
       }
     };
